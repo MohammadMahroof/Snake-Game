@@ -27,24 +27,24 @@ class Snake:
         for seg_num in range(len(self.segments) - 1, 0, -1):        #start from the last segment 
             new_x = self.segments[seg_num - 1].xcor()               #Tail -> follows body
             new_y = self.segments[seg_num - 1].ycor()               #Body -> follows head
-                                                                #Head -> moves forward
+                                                                    #Head -> moves forward
 
             self.segments[seg_num].goto(new_x, new_y)
         self.head.forward(MOVE_DIST)
 
-    def Up(self):
+    def up(self):
         if self.head.heading() != DOWN:
             self.head.setheading(UP)
         
-    def Down(self):
+    def down(self):
         if self.head.heading() != UP:
             self.head.setheading(DOWN)
         
-    def Left(self):
+    def left(self):
         if self.head.heading() != RIGHT:
             self.head.setheading(LEFT)
         
-    def Right(self):
+    def right(self):
         if self.head.heading() != LEFT:
             self.head.setheading(RIGHT)
         

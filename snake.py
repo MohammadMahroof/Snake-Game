@@ -19,7 +19,6 @@ class Snake:
         for position in STARTING_POSITIONS:
             self.add_segment(position)
             
-
     def add_segment(self, position):
         new_segment = Turtle("square")
         new_segment.color("white")
@@ -34,9 +33,7 @@ class Snake:
         for seg_num in range(len(self.segments) - 1, 0, -1):        #start from the last segment  New Tail -> follows old tail
             new_x = self.segments[seg_num - 1].xcor()               #Old Tail -> follows body
             new_y = self.segments[seg_num - 1].ycor()               #Body -> follows head
-                                                                    #Head -> moves forward
-
-            self.segments[seg_num].goto(new_x, new_y)
+            self.segments[seg_num].goto(new_x, new_y)               #Head -> moves forward
         self.head.forward(MOVE_DIST)
 
     def up(self):

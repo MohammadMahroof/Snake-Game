@@ -429,7 +429,7 @@ The overall structure can be understood as:
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/Snake-Game.git
+git clone https://github.com/MohammadMahroof/Snake-Game.git
 ```
 
 ## 2. Open the Project

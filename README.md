@@ -2,7 +2,9 @@
 
 A classic **Snake Game** built using **Python Turtle** and **Object-Oriented Programming (OOP)**.
 
-The player controls the snake using the keyboard, eats food to increase the score and grow the snake, and must avoid hitting the walls or its own tail.
+The player controls the snake using the keyboard, eats food to increase the score and grow the snake, and tries to achieve the highest possible score while avoiding collisions with the walls and its own tail.
+
+The game automatically **resets after a collision**, while the highest score is preserved for the next round and between program sessions.
 
 ---
 
@@ -10,17 +12,21 @@ The player controls the snake using the keyboard, eats food to increase the scor
 
 This project is a Python implementation of the classic Snake Game.
 
-The project was developed to practice:
+It was developed as part of my **Python learning journey** to practice programming concepts by building a complete, interactive game using multiple Python modules and OOP principles.
+
+The project focuses on:
 
 * Python programming
 * Object-Oriented Programming (OOP)
 * Classes and objects
 * Turtle graphics
 * Keyboard event handling
-* Loops and conditional statements
+* Lists and loops
+* File handling
 * Collision detection
 * Game logic
 * Modular programming
+* Persistent data storage
 
 ---
 
@@ -33,7 +39,9 @@ The project was developed to practice:
 * 🐍 Snake growth after eating food
 * 🧱 Wall collision detection
 * 💥 Tail/self-collision detection
-* 🏆 Game Over message
+* 🔄 Automatic game reset after collision
+* 🏆 High-score tracking
+* 💾 Persistent high-score storage using a file
 * 🎯 Object-Oriented design
 
 ---
@@ -49,7 +57,7 @@ The project was developed to practice:
 
 The snake cannot immediately move in the opposite direction.
 
-For example, if the snake is moving right, pressing the left arrow will not immediately turn it around.
+For example, if the snake is moving right, pressing the left arrow will not immediately turn the snake around.
 
 ---
 
@@ -58,7 +66,8 @@ For example, if the snake is moving right, pressing the left arrow will not imme
 * **Python**
 * **Turtle Graphics**
 * **Object-Oriented Programming**
-* **PyCharm / VS Code**
+* **File Handling**
+* **VS Code / PyCharm**
 * **Git & GitHub**
 
 ---
@@ -72,8 +81,16 @@ Snake-Game/
 ├── snake.py
 ├── food.py
 ├── scoreboard.py
+├── data.txt
+├── .gitignore
 └── README.md
 ```
+
+> **Note:** `data.txt` stores the local high score and is ignored by Git using `.gitignore`.
+
+---
+
+## 📄 File Responsibilities
 
 ### `main.py`
 
@@ -85,8 +102,11 @@ It is responsible for:
 * Creating the Snake, Food, and Scoreboard objects
 * Setting keyboard controls
 * Running the main game loop
-* Checking collisions
-* Updating the game
+* Detecting food collisions
+* Detecting wall collisions
+* Detecting tail collisions
+* Resetting the game after a collision
+* Updating the screen
 
 ---
 
@@ -100,9 +120,10 @@ The class is responsible for:
 * Creating the initial snake segments
 * Moving the snake
 * Controlling the snake's direction
-* Adding new segments when the snake eats food
+* Extending the snake after eating food
+* Resetting the snake after a collision
 
-The snake is made up of multiple Turtle objects stored inside a list.
+The snake segments are stored in a list.
 
 ---
 
@@ -110,13 +131,13 @@ The snake is made up of multiple Turtle objects stored inside a list.
 
 Contains the `Food` class.
 
-The Food class:
+The Food class is responsible for:
 
-* Creates the food object
-* Gives it a circular shape
-* Gives it a red color
-* Places it at a random position
-* Refreshes its position after being eaten
+* Creating the food object
+* Giving the food a circular shape
+* Giving the food a red color
+* Placing the food at a random position
+* Refreshing its position after being eaten
 
 ---
 
@@ -127,9 +148,45 @@ Contains the `Scoreboard` class.
 The Scoreboard class is responsible for:
 
 * Displaying the current score
-* Increasing the score
+* Tracking the high score
 * Updating the score display
-* Displaying the `GAME OVER` message
+* Resetting the current score
+* Saving a new high score
+* Loading the previous high score from a file
+
+---
+
+### `data.txt`
+
+Stores the player's **high score**.
+
+The file allows the high score to remain available even after the program is closed and run again.
+
+For example:
+
+```text
+15
+```
+
+When the program starts, the value is read from `data.txt` and displayed as the current high score.
+
+> `data.txt` is a local file and is ignored by Git because the value changes during gameplay.
+
+---
+
+### `.gitignore`
+
+The `.gitignore` file prevents local/generated files from being tracked by Git.
+
+For example:
+
+```gitignore
+data.txt
+__pycache__/
+*.pyc
+```
+
+This prevents the local high-score data and Python cache files from appearing as changes in the Git repository.
 
 ---
 
@@ -157,13 +214,7 @@ The snake moves continuously through the `move()` method.
 
 The body segments follow the segment in front of them.
 
-The movement can be visualized as:
-
-```text
-Tail → Body → Head
-```
-
-More specifically:
+The basic movement concept is:
 
 ```text
 Tail follows Body
@@ -173,7 +224,7 @@ Head moves forward
 
 The segments are moved from the last segment toward the first segment.
 
-This is important because each segment needs to move to the **previous position of the segment in front of it**.
+This allows each segment to take the previous position of the segment in front of it.
 
 ---
 
@@ -199,6 +250,15 @@ Turtle headings are:
 270° → Down
 ```
 
+The direction methods also prevent the snake from immediately reversing direction.
+
+For example:
+
+```text
+Moving Right → Cannot immediately move Left
+Moving Up    → Cannot immediately move Down
+```
+
 ---
 
 ## 4. Food
@@ -207,14 +267,14 @@ The food is created using the `Food` class.
 
 The food appears at a random position on the screen.
 
-Example:
+The random coordinates are generated within the playable area:
 
 ```python
 random_x = random.randint(-280, 280)
 random_y = random.randint(-280, 280)
 ```
 
-This allows the food to appear in different locations each time.
+Every time the snake eats the food, the food is moved to a new random location.
 
 ---
 
@@ -224,31 +284,32 @@ The game checks the distance between the snake's head and the food.
 
 When the snake gets close enough to the food:
 
-1. The score increases.
+1. The food moves to a new position.
 2. The snake grows.
-3. The food moves to a new random location.
+3. The score increases.
+4. The scoreboard is updated.
 
-This creates the main gameplay loop.
+The gameplay flow is:
 
 ```text
 Snake finds food
        ↓
 Snake eats food
        ↓
-Score increases
+Food moves
        ↓
 Snake grows
        ↓
-Food appears somewhere else
+Score increases
+       ↓
+Continue playing
 ```
 
 ---
 
 ## 6. Snake Growth
 
-When the snake eats food, a new segment is added to the snake.
-
-This makes the snake longer as the player continues playing.
+When the snake eats food, a new segment is added to the end of the snake.
 
 For example:
 
@@ -257,7 +318,7 @@ Start:
 
 🐍 🟩 🟩
 
-After eating food:
+After eating:
 
 🐍 🟩 🟩 🟩
 
@@ -266,68 +327,221 @@ After eating again:
 🐍 🟩 🟩 🟩 🟩
 ```
 
+The longer the snake becomes, the more difficult it is to avoid hitting its own body.
+
 ---
 
 # 💥 Collision Detection
 
-Collision detection is one of the most important parts of the game.
+Collision detection is an important part of the game.
 
-There are two main collisions that can end the game.
+The game checks for two main types of collisions:
+
+1. Wall collision
+2. Tail/self-collision
+
+Unlike the original version of the game, a collision **does not permanently end the program**.
+
+Instead, the game automatically resets and allows the player to start another round.
+
+---
 
 ## 1. Wall Collision
 
 The game checks whether the snake's head reaches the boundary of the game screen.
 
-If the snake goes outside the playable area:
+The playable area is approximately:
 
 ```text
-GAME OVER
+x: -280 to 280
+y: -280 to 280
 ```
 
-is displayed.
+If the snake reaches outside this area:
+
+```text
+Collision
+   ↓
+Reset snake
+   ↓
+Reset current score
+   ↓
+Keep high score
+   ↓
+Start a new round
+```
 
 ---
 
 ## 2. Tail Collision
 
-The game also checks whether the snake's head touches any part of its own body.
+The game checks whether the snake's head touches any part of its own body.
 
-The logic checks the distance between the head and each body segment.
-
-Conceptually:
+The collision check uses:
 
 ```python
 for segment in snake.segments[1:]:
     if snake.head.distance(segment) < 10:
-        # Game Over
+        ...
 ```
 
-`snake.segments[1:]` skips the head and checks only the body segments.
+`snake.segments[1:]` skips the head and checks only the remaining body segments.
 
-If the head gets too close to one of them, the game ends.
+If the head gets too close to one of the body segments, the round is reset.
+
+---
+
+# 🔄 Game Reset System
+
+One of the recent improvements to the project is the **automatic game reset system**.
+
+Previously, a collision would result in a game-over state.
+
+Now, when the snake collides with a wall or its own tail:
+
+```text
+Collision detected
+       ↓
+Check current score
+       ↓
+Update high score if necessary
+       ↓
+Reset current score
+       ↓
+Reset snake
+       ↓
+Start a new round
+```
+
+This allows the player to continue playing without restarting the Python program.
+
+---
+
+# 🏆 High Score System
+
+The game now maintains two values:
+
+```text
+Score
+High Score
+```
+
+For example:
+
+```text
+Score: 5  High Score: 12
+```
+
+The **Score** represents the player's score in the current round.
+
+The **High Score** represents the highest score achieved across rounds.
+
+---
+
+## High Score Logic
+
+When a collision occurs, the game checks:
+
+```text
+Current Score > High Score?
+```
+
+If the current score is higher:
+
+```text
+Current Score
+      ↓
+New High Score
+      ↓
+Save High Score
+      ↓
+Reset Current Score
+```
+
+If the current score is not higher, only the current score is reset.
+
+The high score remains unchanged.
+
+---
+
+# 💾 Persistent High Score
+
+The high score is stored in `data.txt`.
+
+This means the high score is not lost when the program is closed.
+
+The process works like this:
+
+```text
+Program starts
+      ↓
+Read high score from data.txt
+      ↓
+Display high score
+      ↓
+Play game
+      ↓
+Achieve new high score
+      ↓
+Save new high score to data.txt
+      ↓
+Close program
+      ↓
+Run program again
+      ↓
+Read saved high score
+```
+
+For example:
+
+```text
+First session:
+
+High Score: 0
+     ↓
+Player scores 10
+     ↓
+High Score: 10
+```
+
+After closing and running the program again:
+
+```text
+Score: 0  High Score: 10
+```
+
+The high score remains available.
 
 ---
 
 # 📊 Score System
 
-The `Scoreboard` class keeps track of the player's score.
+The `Scoreboard` class manages both the current score and the high score.
 
-The score starts at:
+When food is eaten:
 
 ```text
-Score: 0
+Score increases by 1
 ```
 
-Every time the snake eats food:
+Example:
 
 ```text
 Score: 1
 Score: 2
 Score: 3
+Score: 4
 ...
 ```
 
-The scoreboard is updated after every successful food collision.
+When a collision occurs:
+
+```text
+Current score → 0
+High score    → preserved
+```
+
+The scoreboard is updated after every score change and reset.
 
 ---
 
@@ -348,12 +562,16 @@ Check Wall Collision
     ↓
 Check Tail Collision
     ↓
+Reset if Collision Occurs
+    ↓
 Update Screen
     ↓
 Repeat
 ```
 
-The loop continues until the snake collides with a wall or its own tail.
+The loop continues running even after a collision.
+
+Instead of ending the program, the snake and current score are reset and a new round begins.
 
 ---
 
@@ -380,6 +598,7 @@ Snake creation
 Snake movement
 Snake direction
 Snake growth
+Snake reset
 ```
 
 ### Food Class
@@ -397,12 +616,14 @@ Food refreshing
 Responsible for:
 
 ```text
-Score
+Current score
+High score
 Score updates
-Game Over message
+High-score persistence
+Score reset
 ```
 
-This makes the code easier to understand, maintain, and extend.
+This separation makes the code easier to understand, maintain, and extend.
 
 ---
 
@@ -411,15 +632,16 @@ This makes the code easier to understand, maintain, and extend.
 The overall structure can be understood as:
 
 ```text
-                Snake Game
-                    │
-        ┌───────────┼───────────┐
-        │           │           │
-      Snake        Food      Scoreboard
-        │           │           │
-     Movement    Random      Score
-     Controls    Position    Game Over
-     Growth
+                    Snake Game
+                        │
+            ┌───────────┼───────────┐
+            │           │           │
+          Snake        Food      Scoreboard
+            │           │           │
+       Movement      Random      Score
+       Controls      Position    High Score
+       Growth        Refresh     Reset
+       Reset                     File Storage
 ```
 
 ---
@@ -452,11 +674,11 @@ The Snake Game window will open.
 
 The project uses Python's built-in `turtle` module.
 
-No external packages are required.
+No external Python packages are required.
 
 Make sure Python is installed on your computer.
 
-You can check your Python version using:
+Check your Python version using:
 
 ```bash
 python --version
@@ -480,11 +702,14 @@ This project helped practice several important Python concepts:
 * Conditional statements
 * `for` loops
 * `while` loops
-* Slicing
+* List slicing
 * Random numbers
 * Event listeners
 * Turtle graphics
 * Collision detection
+* File handling
+* Reading and writing files
+* Persistent data storage
 * Modular programming
 * Object-Oriented Programming
 
@@ -494,24 +719,57 @@ This project helped practice several important Python concepts:
 
 Possible improvements for future versions:
 
-* 🏆 High-score system
-* 💾 Save high score to a file
-* 🔄 Restart game option
-* ⏩ Increase snake speed over time
-* 🎨 Improve game design
+* 🎨 Improve game interface
+* ⏩ Increase snake speed as the score increases
 * 🔊 Add sound effects
-* ❤️ Add multiple lives
 * 🎯 Add different types of food
 * 🧱 Add obstacles
-* 🌟 Add different difficulty levels
+* 🌟 Add difficulty levels
+* ❤️ Add multiple lives
+* 🏅 Add more game statistics
+* 🕹️ Add pause/resume functionality
+* 🖥️ Improve the overall game UI
 
 ---
 
 # 🎯 Learning Goal
 
-The main goal of this project was to strengthen Python programming and Object-Oriented Programming skills by building a complete game from scratch.
+The main goal of this project was to strengthen my **Python programming and Object-Oriented Programming skills** by building a complete game from scratch.
 
-It also helped practice breaking a larger program into smaller, reusable classes and modules.
+Through this project, I practiced:
+
+* Designing classes
+* Separating program functionality into modules
+* Handling user input
+* Working with Turtle graphics
+* Implementing game loops
+* Detecting collisions
+* Managing game state
+* Working with files
+* Persisting data between program sessions
+
+This project is part of my ongoing **Python learning journey** and portfolio development.
+
+---
+
+# 📈 Project Status
+
+**Completed — Part of my Python Learning Journey**
+
+The core Snake Game is complete, including:
+
+* Snake movement
+* Keyboard controls
+* Food generation
+* Snake growth
+* Score tracking
+* Wall collision
+* Tail collision
+* Automatic game reset
+* High-score tracking
+* Persistent high-score storage
+
+Future improvements may be added as I continue learning Python and game development.
 
 ---
 
@@ -523,10 +781,4 @@ Python Developer | Software Developer
 
 ---
 
-# ⭐ Project Status
-
-**Completed**
-
-This project was created as part of my Python learning journey and portfolio development.
-
-If you found this project useful, feel free to ⭐ star the repository.
+⭐ If you found this project interesting, feel free to star the repository.

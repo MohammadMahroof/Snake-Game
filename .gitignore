@@ -1,0 +1,6 @@
+# Local high score data
+data.txt
+
+# Python cache
+__pycache__/
+*.pyc
